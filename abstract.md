@@ -1,0 +1,1 @@
+Based on a simulated mixture of normals, we will investigate the performance of a mixture model. Furthermore, we will explore the use of reversible-jump markov chain monte carlo to estimate the number of components of the model. Finally, we will evaluate the accuracy of this technique, by comparing it to the simulated data with known parameters.
