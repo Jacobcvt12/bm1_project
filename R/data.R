@@ -5,7 +5,7 @@ create.data <- function(params,
                         dir,
                         distribution=rnorm, 
                         output.dims=1,
-                        mix.prob=c(0.5, 0.5), 
+                        mix.prob=c(0.3, 0.7), 
                         obs=100)
 {
     # get number of components
