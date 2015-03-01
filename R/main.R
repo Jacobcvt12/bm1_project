@@ -30,7 +30,7 @@ b <- 1
 sourceCpp("src/sampler.cpp")
 
 # number of iterations
-S <- 1e6
+S <- 10
 
 # explore joint posterior
 set.seed(42)
