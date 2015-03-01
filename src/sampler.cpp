@@ -8,15 +8,13 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
                             Rcpp::NumericVector sigma20,
                             Rcpp::NumericVector v0,
                             double a, double b, int S=1000) {
-    // Initialize PHI matrix for posterior distribution
-    //Rcpp::NumericMatrix PHI(1, 5 + y.length());
-    Rcpp::NumericMatrix PHI(1, 5);
+    // allocate PHI matrix for posterior distribution
+    Rcpp::NumericMatrix PHI(S, 5 + y.length());
 
-    // Set random number generator
+    // set random number generator
     Rcpp::RNGScope scope;
-    //Rf_PrintValue(Rcpp::rbeta(1, a, b));
 
-    // Simulate first value from prior distribution
+    // simulate first value from prior distribution
     double p = Rcpp::as<double>(Rcpp::rbeta(1, a, b));
     PHI(0, 0) = p;
 
@@ -34,6 +32,16 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
                                               2/(v0(1)*sigma20(1))));
     PHI(0, 4) = s1;
 
+    // still need to initialize xi's
+
+    // initialize value for delta
+    double delta = 1;
+    
+    // begin metropolis routine
+    for (int s = 1; s < S; ++s) {
+        double p = PHI(s-1, 0);
+        double p_star = Rcpp::as<double>(Rcpp::rnorm(1, p, delta^2));
+    }
 
     return PHI;
 }
