@@ -14,6 +14,18 @@ y <- scan("data/simulated.dat")
 # precisions ~ gamma(v/2, v*sigma^2/2)
 # p ~ beta(a, b)
 
+# theta priors
+mu.0 <- c(0, 10)
+tau.20 <- c(10, 10)
+
+# s priors
+sigma.20 <- c(1, 20^2)
+v.0 <- c(5, 5)
+
+# p priors
+a <- 1
+b <- 1
+
 # load C++ MCMC sampler
 sourceCpp("src/sampler.cpp")
 
@@ -21,6 +33,6 @@ sourceCpp("src/sampler.cpp")
 S <- 1e6
 
 # explore joint posterior
-PHI <- sampler(y, mu.1, mu.2, tau.1.2, tau.2.2, a, b, S)
+PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b, S)
 
 # MCMC diagnostics
