@@ -33,6 +33,7 @@ sourceCpp("src/sampler.cpp")
 S <- 1e6
 
 # explore joint posterior
+set.seed(42)
 PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b, S)
 
 # MCMC diagnostics
