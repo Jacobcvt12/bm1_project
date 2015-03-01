@@ -48,6 +48,10 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
         theta2 = PHI(s-1, 3);
         s2 = PHI(s-1, 4);
 
+        for (int i = 5; i < 5 + y.length(); ++i) {
+            x_s(i-5) = PHI(s-1, i);
+        }
+
         // compute candidate values
         double p_star = R::rnorm(p, delta2);
         double theta1_star = R::rnorm(theta1, delta2);
@@ -61,6 +65,10 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
         // accept or reject candidate
         double log_r;
+
+        // log acceptance ratios need to be rewritten to 
+        // include only y's where corresponding x
+        // is appropriate class
 
         // theta1 log acceptance ratio
         log_r = (Rcpp::sum(Rcpp::dnorm(y, theta1_star, 1/sqrt(s1), true)) + 
@@ -105,6 +113,8 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
         if (log(R::runif(0, 1)) < log_r) {
             s2 = s2_star;
         }
+
+        // x log acceptance ratio
     }
 
     return PHI;
