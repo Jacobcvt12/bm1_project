@@ -1,6 +1,29 @@
 #include <Rcpp.h>
 #include <cmath>
 
+Rcpp::NumericVector y_of_class_n(Rcpp::NumericVector y, 
+                                 Rcpp::NumericVector x, 
+                                 int k=1)
+{
+    int n = y.length();
+    std::vector<int> which_class;
+    which_class.reserve(n);
+
+    for (int i = 0; i < n; i++) {
+        if (x(i) == k) {
+            which_class.push_back(x(i));
+        }
+    }
+            
+    Rcpp::NumericVector y_k(which_class.size());
+
+    for (int i = 0; i < which_class.size(); i++) {
+        y_k(i) = y(which_class[i]);
+    }
+
+    return y_k;
+}
+
 // [[Rcpp::export]]
 Rcpp::NumericMatrix sampler(Rcpp::NumericVector y, 
                             Rcpp::NumericVector mu0,
@@ -37,7 +60,7 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
     }
 
     // initialize value for delta
-    double delta2 = 1;
+    double delta2 = 0.25;
 
     // begin metropolis routine
     for (int s = 1; s < S; ++s) {
@@ -60,21 +83,23 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
         double s2_star = R::rnorm(s2, delta2);
 
         // this generation of x* may be incorrect
-        // should it depend on delta?
+        // how should it depend on delta?
         Rcpp::NumericVector x_s_star = Rcpp::rbinom(y.length(), 1, 0.5);
 
         // accept or reject candidate
         double log_r;
 
-        // log acceptance ratios need to be rewritten to 
         // include only y's where corresponding x
         // is appropriate class
 
+        Rcpp::NumericVector y_1 = y_of_class_n(y, x_s, 1);
+        Rcpp::NumericVector y_2 = y_of_class_n(y, x_s, 0);
+
         // theta1 log acceptance ratio
-        log_r = (Rcpp::sum(Rcpp::dnorm(y, theta1_star, 1/sqrt(s1), true)) + 
+        log_r = (Rcpp::sum(Rcpp::dnorm(y_1, theta1_star, 1/sqrt(s1), true)) + 
                  R::dnorm(theta1_star, mu0(0), sqrt(tau20(0)), true))
                 -
-                (Rcpp::sum(Rcpp::dnorm(y, theta1, 1/sqrt(s1), true)) +
+                (Rcpp::sum(Rcpp::dnorm(y_1, theta1, 1/sqrt(s1), true)) +
                  R::dnorm(theta1, mu0(0), sqrt(tau20(0)), true));
 
         if (log(R::runif(0, 1)) < log_r) {
@@ -82,10 +107,10 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
         }
         
         // s1 log acceptance ratio
-        log_r = (Rcpp::sum(Rcpp::dnorm(y, theta1, 1/sqrt(s1_star), true)) + 
+        log_r = (Rcpp::sum(Rcpp::dnorm(y_1, theta1, 1/sqrt(s1_star), true)) + 
                  R::dgamma(s1_star, v0(0)/2, 2/(v0(0)*sigma20(0)), true))
                 -
-                (Rcpp::sum(Rcpp::dnorm(y, theta1, 1/sqrt(s1), true)) +
+                (Rcpp::sum(Rcpp::dnorm(y_1, theta1, 1/sqrt(s1), true)) +
                  R::dgamma(s1, v0(0)/2, 2/(v0(0)*sigma20(0)), true));
 
         if (log(R::runif(0, 1)) < log_r) {
@@ -93,10 +118,10 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
         }
         
         // theta2 log acceptance ratio
-        log_r = (Rcpp::sum(Rcpp::dnorm(y, theta2_star, 1/sqrt(s2), true)) + 
+        log_r = (Rcpp::sum(Rcpp::dnorm(y_2, theta2_star, 1/sqrt(s2), true)) + 
                  R::dnorm(theta2_star, mu0(1), sqrt(tau20(1)), true))
                 -
-                (Rcpp::sum(Rcpp::dnorm(y, theta2, 1/sqrt(s2), true)) +
+                (Rcpp::sum(Rcpp::dnorm(y_2, theta2, 1/sqrt(s2), true)) +
                  R::dnorm(theta2, mu0(1), sqrt(tau20(1)), true));
 
         if (log(R::runif(0, 1)) < log_r) {
@@ -104,18 +129,33 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
         }
 
         // s2 log acceptance ratio
-        log_r = (Rcpp::sum(Rcpp::dnorm(y, theta2, 1/sqrt(s2_star), true)) + 
+        log_r = (Rcpp::sum(Rcpp::dnorm(y_2, theta2, 1/sqrt(s2_star), true)) + 
                  R::dgamma(s2_star, v0(0)/2, 2/(v0(0)*sigma20(0)), true))
                 -
-                (Rcpp::sum(Rcpp::dnorm(y, theta2, 1/sqrt(s2), true)) +
-                 R::dgamma(s2, v0(0)/2, 2/(v0(0)*sigma20(0)), true))
+                (Rcpp::sum(Rcpp::dnorm(y_2, theta2, 1/sqrt(s2), true)) +
+                 R::dgamma(s2, v0(0)/2, 2/(v0(0)*sigma20(0)), true));
 
         if (log(R::runif(0, 1)) < log_r) {
             s2 = s2_star;
         }
 
+        // p log acceptance ratio
+        log_r = (Rcpp::sum(Rcpp::dbinom(x_s, 1, p_star, true)) +
+                 R::dbeta(p_star, a, b, true))
+                -
+                (Rcpp::sum(Rcpp::dbinom(x_s, 1, p, true)) +
+                 R::dbeta(p, a, b, true));
+
+        if (log(R::runif(0, 1)) < log_r) {
+            p = p_star;
+        }
+
         // x log acceptance ratio
+        for (int i = 0; i < x_s.length(); i++) {
+            
+        }
     }
 
     return PHI;
 }
+
