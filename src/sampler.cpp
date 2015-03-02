@@ -1,5 +1,8 @@
 #include <Rcpp.h>
 #include <cmath>
+#include <string>
+#include <map>
+#include <boost/circular_buffer.hpp>
 
 Rcpp::NumericVector y_of_class_n(Rcpp::NumericVector y, 
                                  Rcpp::NumericVector x, 
@@ -60,7 +63,34 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
     }
 
     // initialize value for delta
-    double delta2 = 0.25;
+    std::map<std::string, float> delta;
+    delta.insert(std::make_pair("p", 0.1));
+    delta.insert(std::make_pair("theta1", 1));
+    delta.insert(std::make_pair("s1", 0.1));
+    delta.insert(std::make_pair("theta2", 1));
+    delta.insert(std::make_pair("s2", 0.1));
+                
+
+    // keep running list of last 100 accepted or rejected proposals for each parameter
+    std::map<std::string, boost::circular_buffer<int>> accept_reject;    
+    accept_reject.insert(std::make_pair("p", new boost::circular_buffer<int>));
+    accept_reject.insert(std::make_pair("theta1", new boost::circular_buffer<int>));
+    accept_reject.insert(std::make_pair("s1", new boost::circular_buffer<int>));
+    accept_reject.insert(std::make_pair("theta2", new boost::circular_buffer<int>));
+    accept_reject.insert(std::make_pair("s2", new boost::circular_buffer<int>));
+
+    // this delta needs to be changed
+    // idea: create circular buffer of length 100
+    // to keep a running total of accepted/rejected
+    // candidates. every 100 candidates, calculate
+    // acceptance percentage. adjust delta
+    // if acceptance < 0.2, decrease delta size
+    // if acceptance > 0.3, increase delta size
+
+    // each parameter should have it's own delta
+    // due to the unknown size of the x's, it's
+    // probably best to create a map to access 
+    // the circular buffer based on a key
 
     // begin metropolis routine
     for (int s = 1; s < S; ++s) {
@@ -152,7 +182,25 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
         // x log acceptance ratio
         for (int i = 0; i < x_s.length(); i++) {
-            
+            log_r = (R::dbinom(x_s_star(i), 1, p, true) +
+                     R::dbinom(x_s_star(i), 1, 0.5, true))
+                    -
+                    (R::dbinom(x_s(i), 1, p, true) +
+                     R::dbinom(x_s(i), 1, 0.5, true));
+            if (log(R::runif(0, 1)) < log_r) {
+                x_s(i) = x_s_star(i);
+            }
+        }
+
+        // update PHI
+        PHI(s, 0) = p;
+        PHI(s, 1) = theta1;
+        PHI(s, 2) = s1;
+        PHI(s, 3) = theta2;
+        PHI(s, 4) = s2;
+        
+        for (int i = 5; i < 5 + y.length(); i++) {
+            PHI(s, i) = x_s(i-5);
         }
     }
 

@@ -22,7 +22,7 @@ create.data <- function(params,
 }
 
 params <- matrix(c(0, 1,
-                   10, 20),
+                   3, 20),
                  byrow=TRUE,
                  nrow=2)
 
