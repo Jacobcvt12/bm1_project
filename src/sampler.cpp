@@ -4,6 +4,8 @@
 #include <map>
 #include <boost/circular_buffer.hpp>
 
+#define KEEPVALUES 100
+
 Rcpp::NumericVector y_of_class_n(Rcpp::NumericVector y, 
                                  Rcpp::NumericVector x, 
                                  int k=1)
@@ -72,25 +74,14 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
                 
 
     // keep running list of last 100 accepted or rejected proposals for each parameter
-    std::map<std::string, boost::circular_buffer<int>> accept_reject;    
-    accept_reject.insert(std::make_pair("p", new boost::circular_buffer<int>));
-    accept_reject.insert(std::make_pair("theta1", new boost::circular_buffer<int>));
-    accept_reject.insert(std::make_pair("s1", new boost::circular_buffer<int>));
-    accept_reject.insert(std::make_pair("theta2", new boost::circular_buffer<int>));
-    accept_reject.insert(std::make_pair("s2", new boost::circular_buffer<int>));
+    std::map<std::string, boost::circular_buffer<int>*> accept_reject;    
+    accept_reject.insert(std::make_pair("p", new boost::circular_buffer<int>(KEEPVALUES)));
+    accept_reject.insert(std::make_pair("theta1", new boost::circular_buffer<int>(KEEPVALUES)));
+    accept_reject.insert(std::make_pair("s1", new boost::circular_buffer<int>(KEEPVALUES)));
+    accept_reject.insert(std::make_pair("theta2", new boost::circular_buffer<int>(KEEPVALUES)));
+    accept_reject.insert(std::make_pair("s2", new boost::circular_buffer<int>(KEEPVALUES)));
 
-    // this delta needs to be changed
-    // idea: create circular buffer of length 100
-    // to keep a running total of accepted/rejected
-    // candidates. every 100 candidates, calculate
-    // acceptance percentage. adjust delta
-    // if acceptance < 0.2, decrease delta size
-    // if acceptance > 0.3, increase delta size
-
-    // each parameter should have it's own delta
-    // due to the unknown size of the x's, it's
-    // probably best to create a map to access 
-    // the circular buffer based on a key
+    // do i need to manually release the pointers to circular_buffers or will map do that for me?
 
     // begin metropolis routine
     for (int s = 1; s < S; ++s) {
@@ -105,12 +96,12 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
             x_s(i-5) = PHI(s-1, i);
         }
 
-        // compute candidate values
-        double p_star = R::rnorm(p, delta2);
-        double theta1_star = R::rnorm(theta1, delta2);
-        double s1_star = R::rnorm(s1, delta2);
-        double theta2_star = R::rnorm(theta2, delta2);
-        double s2_star = R::rnorm(s2, delta2);
+        // propose values
+        double p_star = R::rnorm(p, delta["p"]);
+        double theta1_star = R::rnorm(theta1, delta["theta1"]);
+        double s1_star = R::rnorm(s1, delta["s1"]);
+        double theta2_star = R::rnorm(theta2, delta["theta2"]);
+        double s2_star = R::rnorm(s2, delta["s2"]);
 
         // this generation of x* may be incorrect
         // how should it depend on delta?
@@ -134,6 +125,9 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
         if (log(R::runif(0, 1)) < log_r) {
             theta1 = theta1_star;
+            accept_reject["theta1"]->push_back(1);
+        } else {
+            accept_reject["theta1"]->push_back(0);
         }
         
         // s1 log acceptance ratio
