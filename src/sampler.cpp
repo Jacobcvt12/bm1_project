@@ -2,9 +2,10 @@
 #include <cmath>
 #include <string>
 #include <map>
+#include <numeric>
 #include <boost/circular_buffer.hpp>
 
-#define KEEPVALUES 100
+#define ACCEPTTRACK 100
 
 Rcpp::NumericVector y_of_class_n(Rcpp::NumericVector y, 
                                  Rcpp::NumericVector x, 
@@ -35,7 +36,10 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
                             Rcpp::NumericVector tau20,
                             Rcpp::NumericVector sigma20,
                             Rcpp::NumericVector v0,
-                            double a, double b, int S=1000) {
+                            double a, 
+                            double b, 
+                            int S=1000,
+                            int B=1000) {
     // allocate PHI matrix for posterior distribution
     Rcpp::NumericMatrix PHI(S, 5 + y.length());
 
@@ -75,25 +79,36 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
     // keep running list of last 100 accepted or rejected proposals for each parameter
     std::map<std::string, boost::circular_buffer<int>*> accept_reject;    
-    accept_reject.insert(std::make_pair("p", new boost::circular_buffer<int>(KEEPVALUES)));
-    accept_reject.insert(std::make_pair("theta1", new boost::circular_buffer<int>(KEEPVALUES)));
-    accept_reject.insert(std::make_pair("s1", new boost::circular_buffer<int>(KEEPVALUES)));
-    accept_reject.insert(std::make_pair("theta2", new boost::circular_buffer<int>(KEEPVALUES)));
-    accept_reject.insert(std::make_pair("s2", new boost::circular_buffer<int>(KEEPVALUES)));
+    accept_reject.insert(std::make_pair("p", new boost::circular_buffer<int>(ACCEPTTRACK)));
+    accept_reject.insert(std::make_pair("theta1", new boost::circular_buffer<int>(ACCEPTTRACK)));
+    accept_reject.insert(std::make_pair("s1", new boost::circular_buffer<int>(ACCEPTTRACK)));
+    accept_reject.insert(std::make_pair("theta2", new boost::circular_buffer<int>(ACCEPTTRACK)));
+    accept_reject.insert(std::make_pair("s2", new boost::circular_buffer<int>(ACCEPTTRACK)));
+    
+    // This should be updated only through burning stage
 
     // do i need to manually release the pointers to circular_buffers or will map do that for me?
 
     // begin metropolis routine
-    for (int s = 1; s < S; ++s) {
-        // get last iteration estimation
-        p = PHI(s-1, 0);
-        theta1 =  PHI(s-1, 1);
-        s1 = PHI(s-1, 2);
-        theta2 = PHI(s-1, 3);
-        s2 = PHI(s-1, 4);
+    for (int s = 1; s < S + B; ++s) {
+        if (s == B) {
+            // burn in done
+            // release accept_reject map
+            for (auto itr=accept_reject.begin(); itr!=accept_reject.end(); ++itr) {
+                delete itr->second;
+                accept_reject.erase(itr);
+            }
+        } else if (s < B) {
+            // burn in iterations
+            if (s % 100 == 0) {
+                for (auto itr=accept_reject.begin(); itr!=accept_reject.end(); ++itr) {
+                    // get mean acceptantances
+                    double accept_rate = std::accumulate(itr->second.begin(),
+                                                         itr->second.end(), 0) / ACCEPTTRACK;
 
-        for (int i = 5; i < 5 + y.length(); ++i) {
-            x_s(i-5) = PHI(s-1, i);
+                    // need to do something with this!
+                }
+            }
         }
 
         // propose values
