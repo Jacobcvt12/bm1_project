@@ -103,8 +103,8 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
             if (s % 100 == 0) {
                 for (auto itr=accept_reject.begin(); itr!=accept_reject.end(); ++itr) {
                     // get mean acceptantances
-                    double accept_rate = std::accumulate(itr->second.begin(),
-                                                         itr->second.end(), 0) / ACCEPTTRACK;
+                    double accept_rate = std::accumulate(itr->second->begin(),
+                                                         itr->second->end(), 0) / ACCEPTTRACK;
 
                     // need to do something with this!
                 }
