@@ -27,13 +27,13 @@ a <- 1
 b <- 1
 
 # load C++ MCMC sampler
-sourceCpp("src/sampler.cpp")
+#sourceCpp("src/sampler.cpp")
 
 # number of iterations
 S <- 10
 
 # explore joint posterior
 set.seed(42)
-PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b, S)
+#PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b, S)
 
 # MCMC diagnostics
