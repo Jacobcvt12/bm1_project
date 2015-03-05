@@ -7,29 +7,6 @@
 
 #define ACCEPTTRACK 100
 
-Rcpp::NumericVector y_of_class_n(Rcpp::NumericVector y, 
-                                 Rcpp::NumericVector x, 
-                                 int k=1)
-{
-    int n = y.length();
-    std::vector<int> which_class;
-    which_class.reserve(n);
-
-    for (int i = 0; i < n; i++) {
-        if (x(i) == k) {
-            which_class.push_back(x(i));
-        }
-    }
-            
-    Rcpp::NumericVector y_k(which_class.size());
-
-    for (int i = 0; i < which_class.size(); i++) {
-        y_k(i) = y(which_class[i]);
-    }
-
-    return y_k;
-}
-
 // [[Rcpp::export]]
 Rcpp::NumericMatrix sampler(Rcpp::NumericVector y, 
                             Rcpp::NumericVector mu0,
@@ -62,6 +39,9 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
     double s2 = R::rgamma(v0(1)/2, 2/(v0(1)*sigma20(1)));
     PHI(0, 4) = s1;
 
+    // NB: theta's and s's should be changed to vectors
+    // instead of individual variables
+
     // intial x's~binom(0.5)
     Rcpp::NumericVector x_s = Rcpp::rbinom(y.length(), 1, 0.5);
     for (int i = 5; i < 5 + y.length(); ++i) {
@@ -75,41 +55,13 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
     delta.insert(std::make_pair("s1", 0.1));
     delta.insert(std::make_pair("theta2", 1));
     delta.insert(std::make_pair("s2", 0.1));
-                
-
-    // keep running list of last 100 accepted or rejected proposals for each parameter
-    std::map<std::string, boost::circular_buffer<int>*> accept_reject;    
-    accept_reject.insert(std::make_pair("p", new boost::circular_buffer<int>(ACCEPTTRACK)));
-    accept_reject.insert(std::make_pair("theta1", new boost::circular_buffer<int>(ACCEPTTRACK)));
-    accept_reject.insert(std::make_pair("s1", new boost::circular_buffer<int>(ACCEPTTRACK)));
-    accept_reject.insert(std::make_pair("theta2", new boost::circular_buffer<int>(ACCEPTTRACK)));
-    accept_reject.insert(std::make_pair("s2", new boost::circular_buffer<int>(ACCEPTTRACK)));
-    
-    // This should be updated only through burning stage
-
-    // do i need to manually release the pointers to circular_buffers or will map do that for me?
 
     // begin metropolis routine
     for (int s = 1; s < S + B; ++s) {
-        if (s == B) {
-            // burn in done
-            // release accept_reject map
-            for (auto itr=accept_reject.begin(); itr!=accept_reject.end(); ++itr) {
-                delete itr->second;
-                accept_reject.erase(itr);
-            }
-        } else if (s < B) {
-            // burn in iterations
-            if (s % 100 == 0) {
-                for (auto itr=accept_reject.begin(); itr!=accept_reject.end(); ++itr) {
-                    // get mean acceptantances
-                    double accept_rate = std::accumulate(itr->second->begin(),
-                                                         itr->second->end(), 0) / ACCEPTTRACK;
-
-                    // need to do something with this!
-                }
-            }
-        }
+        // include only y's where corresponding x
+        // is appropriate class
+        Rcpp::NumericVector y_1 = y[x_s == 1];
+        Rcpp::NumericVector y_2 = y[x_s == 0];;
 
         // propose values
         double p_star = R::rnorm(p, delta["p"]);
@@ -117,19 +69,14 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
         double s1_star = R::rnorm(s1, delta["s1"]);
         double theta2_star = R::rnorm(theta2, delta["theta2"]);
         double s2_star = R::rnorm(s2, delta["s2"]);
+        Rcpp::NumericVector x_s_star(x_s.length());
 
-        // this generation of x* may be incorrect
-        // how should it depend on delta?
-        Rcpp::NumericVector x_s_star = Rcpp::rbinom(y.length(), 1, 0.5);
+        for (int i = 0; i < x_s.length(); i++) {
+            x_s_star(i) = (x_s(i) + 1) % 2;
+        }
 
         // accept or reject candidate
         double log_r;
-
-        // include only y's where corresponding x
-        // is appropriate class
-
-        Rcpp::NumericVector y_1 = y_of_class_n(y, x_s, 1);
-        Rcpp::NumericVector y_2 = y_of_class_n(y, x_s, 0);
 
         // theta1 log acceptance ratio
         log_r = (Rcpp::sum(Rcpp::dnorm(y_1, theta1_star, 1/sqrt(s1), true)) + 
@@ -140,9 +87,6 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
         if (log(R::runif(0, 1)) < log_r) {
             theta1 = theta1_star;
-            accept_reject["theta1"]->push_back(1);
-        } else {
-            accept_reject["theta1"]->push_back(0);
         }
         
         // s1 log acceptance ratio
@@ -191,11 +135,12 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
         // x log acceptance ratio
         for (int i = 0; i < x_s.length(); i++) {
-            log_r = (R::dbinom(x_s_star(i), 1, p, true) +
-                     R::dbinom(x_s_star(i), 1, 0.5, true))
-                    -
-                    (R::dbinom(x_s(i), 1, p, true) +
-                     R::dbinom(x_s(i), 1, 0.5, true));
+            log_r = R::dnorm(y(i), theta2, s2, true) -
+                    R::dnorm(y(i), theta1, s1, true);
+            if (x_s_star(i) == 1) {
+                log_r = -1 * log_r;
+            }
+
             if (log(R::runif(0, 1)) < log_r) {
                 x_s(i) = x_s_star(i);
             }
