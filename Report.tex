@@ -1,0 +1,26 @@
+\documentclass[12pt]{article}
+\pagestyle{empty}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{wasysym}
+
+\title{Bayesian Methods Final Project}
+\author{Vivek Khatri, Jacob Carey, Tony Harper}
+\date{}
+\begin{document}
+
+\section*{Data Simulation}
+Simulated data was generated using a two component additive mixture of normal distributions.  Each normal distribution in the mixture was given an equal probability of contributing to the observable variable. The component normal distributions had mean values of $0$ and $10$, with standard deviations of $1$ and $20$ respectively.
+
+\section*{Prior Distributions}
+The prior probability of each normal distribution’s contribution to the observable variable was uniformly distributed (e.g. taken from a beta distribution with shape and rate parameters equal to one). This resulted in a $p$ value for the probability of the first normal component, with a complementary $1-p$ probability of the second normal component.
+The prior distributions of the parameters used in the additive normal components ($\theta_1$, $\theta_2$ , $s_1$, $s_2$ ) were taken from standard conjugate distributions. The $\theta$ parameters were generated from a normal distribution with a population mean hyperparameter $\mu_0$ of $0$ and $10$ for the first and second normal components respectively. The variance hyperparameter $\tau_0^2$ for both normal component means was set to $10$ for both components.
+	The prior distributions for the standard deviations $s$ of the normal components were back calculated after setting the precision values ($\frac{1}{s^2}$)  a gamma distribution with shape and rate parameters $v/2$, $\frac{v\sigma_0^2}{2}$ respectively. The prior standard deviation for the first and second component  was $1$ and $20$ respectively, with the degrees of freedom hyperparameter $v$ set $5$ for both components. 
+
+\section*{RJ MCMC specifics}
+
+\section*{Posterior summary and diagnostics}
+
+\section*{comparison of model to simulation parameters}
+
+\end{document}
