@@ -90,7 +90,7 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
                  R::dgamma(s1_star, v0/2, 2/(v0*sigma20), true))
                 -
                 (Rcpp::sum(Rcpp::dnorm(y_1, theta1, 1/sqrt(s1), true)) +
-                 R::dgamma(s1, v0/2, 2/(v0(0)*sigma20), true));
+                 R::dgamma(s1, v0/2, 2/(v0*sigma20), true));
 
         if (log(R::runif(0, 1)) < log_r) {
             s1 = s1_star;
@@ -109,7 +109,7 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
         // s2 log acceptance ratio
         log_r = (Rcpp::sum(Rcpp::dnorm(y_2, theta2, 1/sqrt(s2_star), true)) + 
-                 R::dgamma(s2_star, v0/2, 2/(v0*sigma20(0)), true))
+                 R::dgamma(s2_star, v0/2, 2/(v0*sigma20), true))
                 -
                 (Rcpp::sum(Rcpp::dnorm(y_2, theta2, 1/sqrt(s2), true)) +
                  R::dgamma(s2, v0/2, 2/(v0*sigma20), true));

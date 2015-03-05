@@ -34,6 +34,6 @@ S <- 10
 
 # explore joint posterior
 set.seed(42)
-PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b, S)
+PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b)
 
 # MCMC diagnostics
