@@ -72,7 +72,7 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
         Rcpp::NumericVector x_s_star(x_s.length());
 
         for (int i = 0; i < x_s.length(); i++) {
-            x_s_star(i) = (x_s(i) + 1) % 2;
+            x_s_star(i) = int (x_s(i) + 1) % 2;
         }
 
         // accept or reject candidate
