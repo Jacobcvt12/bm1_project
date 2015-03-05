@@ -3,12 +3,9 @@
 #include <string>
 #include <map>
 #include <numeric>
-#include <boost/circular_buffer.hpp>
 
 #include "identify_class.h"
-
-#define ACCEPTTRACK 100
-
+#include "track_proposals.h"
 
 // [[Rcpp::export]]
 Rcpp::NumericMatrix sampler(Rcpp::NumericVector y, 
@@ -49,46 +46,23 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
     }
 
     // initialize value for delta
-    std::map<std::string, float> delta;
-    delta.insert(std::make_pair("p", 0.1));
-    delta.insert(std::make_pair("theta1", 1));
-    delta.insert(std::make_pair("s1", 0.1));
-    delta.insert(std::make_pair("theta2", 1));
-    delta.insert(std::make_pair("s2", 0.1));
-                
-
-    // keep running list of last 100 accepted or rejected proposals for each parameter
-    std::map<std::string, boost::circular_buffer<int>*> accept_reject;    
-    accept_reject.insert(std::make_pair("p", new boost::circular_buffer<int>(ACCEPTTRACK)));
-    accept_reject.insert(std::make_pair("theta1", new boost::circular_buffer<int>(ACCEPTTRACK)));
-    accept_reject.insert(std::make_pair("s1", new boost::circular_buffer<int>(ACCEPTTRACK)));
-    accept_reject.insert(std::make_pair("theta2", new boost::circular_buffer<int>(ACCEPTTRACK)));
-    accept_reject.insert(std::make_pair("s2", new boost::circular_buffer<int>(ACCEPTTRACK)));
-    
-    // This should be updated only through burning stage
-
-    // do i need to manually release the pointers to circular_buffers or will map do that for me?
+    track_acceptance delta;
+    delta.track_parameter("p", 0.1);
+    delta.track_parameter("theta1", 1);
+    delta.track_parameter("s1", 0.1);
+    delta.track_parameter("theta2", 1);
+    delta.track_parameter("s2", 0.1);
 
     // begin metropolis routine
     for (int s = 1; s < S + B; ++s) {
         if (s == B) {
             // burn in done
             // release accept_reject map
-            for (auto itr=accept_reject.begin(); itr!=accept_reject.end(); ++itr) {
-                delete itr->second;
-                accept_reject.erase(itr);
-            }
+            delta.erase_buffer();
         } else if (s < B) {
             // burn in iterations
-            if (s % 100 == 0) {
-                for (auto itr=accept_reject.begin(); itr!=accept_reject.end(); ++itr) {
-                    // get mean acceptantances
-                    double accept_rate = std::accumulate(itr->second->begin(),
-                                                         itr->second->end(), 0) / ACCEPTTRACK;
-
-                    Rcpp::Rcout << "Acceptance rate after " << s << 
-                                   " iterations is " << accept_rate << std::endl;
-                }
+            if (s % ACCEPTTRACK == 0) {
+                delta.modify_deltas();
             }
         }
 
@@ -121,9 +95,9 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
         if (log(R::runif(0, 1)) < log_r) {
             theta1 = theta1_star;
-            accept_reject["theta1"]->push_back(1);
+            delta.accept_reject("theta1", 1);
         } else {
-            accept_reject["theta1"]->push_back(0);
+            delta.accept_reject("theta1", 0);
         }
         
         // s1 log acceptance ratio
@@ -135,6 +109,9 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
         if (log(R::runif(0, 1)) < log_r) {
             s1 = s1_star;
+            delta.accept_reject("s1", 1);
+        } else {
+            delta.accept_reject("s1", 0);
         }
         
         // theta2 log acceptance ratio
@@ -146,6 +123,9 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
         if (log(R::runif(0, 1)) < log_r) {
             theta2 = theta2_star;
+            delta.accept_reject("theta2", 1);
+        } else {
+            delta.accept_reject("theta2", 0);
         }
 
         // s2 log acceptance ratio
@@ -157,6 +137,9 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
         if (log(R::runif(0, 1)) < log_r) {
             s2 = s2_star;
+            delta.accept_reject("s2", 1);
+        } else {
+            delta.accept_reject("s2", 0);
         }
 
         // p log acceptance ratio
@@ -168,6 +151,9 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
         if (log(R::runif(0, 1)) < log_r) {
             p = p_star;
+            delta.accept_reject("p", 1);
+        } else {
+            delta.accept_reject("p", 0);
         }
 
         // x log acceptance ratio
