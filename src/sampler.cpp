@@ -106,7 +106,8 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
                     double accept_rate = std::accumulate(itr->second->begin(),
                                                          itr->second->end(), 0) / ACCEPTTRACK;
 
-                    // need to do something with this!
+                    Rcpp::Rcout << "Acceptance rate after " << s << 
+                                   " iterations is " << accept_rate << std::endl;
                 }
             }
         }
