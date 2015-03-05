@@ -4,7 +4,6 @@
 #include <map>
 #include <numeric>
 
-#include "identify_class.h"
 #include "track_proposals.h"
 
 // [[Rcpp::export]]
@@ -83,8 +82,8 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
         // include only y's where corresponding x
         // is appropriate class
 
-        Rcpp::NumericVector y_1 = y_of_class_n(y, x_s, 1);
-        Rcpp::NumericVector y_2 = y_of_class_n(y, x_s, 0);
+        Rcpp::NumericVector y_1 = y[x_s == 1];
+        Rcpp::NumericVector y_2 = y[x_s == 0];
 
         // theta1 log acceptance ratio
         log_r = (Rcpp::sum(Rcpp::dnorm(y_1, theta1_star, 1/sqrt(s1), true)) + 

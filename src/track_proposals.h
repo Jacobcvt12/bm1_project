@@ -20,6 +20,6 @@ class track_acceptance {
         double accept_rate(std::string param);
         void erase_buffer();
         void modify_deltas();
-}
+};
 
 #endif

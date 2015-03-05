@@ -51,4 +51,5 @@ void track_acceptance::modify_deltas()
             delta_change = 1 - (0.15 - rate);
             delta_map[itr->first] = current_delta * delta_change;
         }
+    }
 }

@@ -2,12 +2,8 @@
 
 # Mixture model of two component univariate mixture of normals
 
-# libraries
-library(Rcpp)
-library(ggplot2)
-
 # read in data
-y <- scan("data/simulated.dat")
+#y <- scan("data/simulated.dat")
 
 # priors
 # thetas ~ N(mu, tau^2)
@@ -34,6 +30,7 @@ S <- 10
 
 # explore joint posterior
 set.seed(42)
+y <- 0.3*rnorm(100)+0.7*rnorm(100, 2, 3)
 #PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b, S)
 
 # MCMC diagnostics
