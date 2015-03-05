@@ -3,7 +3,6 @@
 #include <string>
 #include <map>
 #include <numeric>
-#include <boost/circular_buffer.hpp>
 
 #define ACCEPTTRACK 100
 
@@ -14,7 +13,7 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
                             double a, double b, 
                             int S=1000, int B=1000) {
     // allocate PHI matrix for posterior distribution
-    Rcpp::NumericMatrix PHI(S, 5 + y.length());
+    Rcpp::NumericMatrix PHI(S+B, 5 + y.length());
 
     // set random number generator
     Rcpp::RNGScope scope;
@@ -46,14 +45,18 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
     // initialize value for delta
     std::map<std::string, float> delta;
-    delta.insert(std::make_pair("p", 0.1));
+    delta.insert(std::make_pair("p", 0.05));
     delta.insert(std::make_pair("theta1", 1));
-    delta.insert(std::make_pair("s1", 0.1));
+    delta.insert(std::make_pair("s1", 0.2));
     delta.insert(std::make_pair("theta2", 1));
-    delta.insert(std::make_pair("s2", 0.1));
+    delta.insert(std::make_pair("s2", 0.2));
 
     // begin metropolis routine
     for (int s = 1; s < S + B; ++s) {
+        if (s % 100 == 0) {
+            Rcpp::Rcout << s << std::endl;
+        }
+
         // include only y's where corresponding x
         // is appropriate class
         Rcpp::NumericVector y_1 = y[x_s == 1];

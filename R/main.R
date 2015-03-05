@@ -4,10 +4,9 @@
 
 # libraries
 library(Rcpp)
-library(ggplot2)
 
-# read in data
-y <- scan("data/simulated.dat")
+# simulated data
+y <- 0.3*rnorm(1000, 0, 1) + 0.7*rnorm(1000, 3, 2)
 
 # priors
 # thetas ~ N(mu, tau^2)
@@ -30,10 +29,10 @@ b <- 1
 sourceCpp("src/sampler.cpp")
 
 # number of iterations
-S <- 10
+S <- 1e5
 
 # explore joint posterior
-set.seed(42)
-PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b)
+PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b, S)
 
-# MCMC diagnostics
+# drop burnins
+PHI <- PHI[1001:nrow(PHI), ]
