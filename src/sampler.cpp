@@ -9,14 +9,10 @@
 
 // [[Rcpp::export]]
 Rcpp::NumericMatrix sampler(Rcpp::NumericVector y, 
-                            Rcpp::NumericVector mu0,
-                            Rcpp::NumericVector tau20,
-                            Rcpp::NumericVector sigma20,
-                            Rcpp::NumericVector v0,
-                            double a, 
-                            double b, 
-                            int S=1000,
-                            int B=1000) {
+                            double mu0, double tau20, 
+                            double sigma20, double v0,
+                            double a, double b, 
+                            int S=1000, int B=1000) {
     // allocate PHI matrix for posterior distribution
     Rcpp::NumericMatrix PHI(S, 5 + y.length());
 
@@ -27,16 +23,16 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
     double p = R::rbeta(a, b);
     PHI(0, 0) = p;
 
-    double theta1= R::rnorm(mu0(0), sqrt(tau20(0)));
+    double theta1= R::rnorm(mu0, sqrt(tau20));
     PHI(0, 1) = theta1;
 
-    double s1 = R::rgamma(v0(0)/2, 2/(v0(0)*sigma20(0)));
+    double s1 = R::rgamma(v0/2, 2/(v0*sigma20));
     PHI(0, 2) = s1;
 
-    double theta2 = R::rnorm(mu0(1), sqrt(tau20(1)));
+    double theta2 = R::rnorm(mu0, sqrt(tau20));
     PHI(0, 3) = theta2;
 
-    double s2 = R::rgamma(v0(1)/2, 2/(v0(1)*sigma20(1)));
+    double s2 = R::rgamma(v0/2, 2/(v0*sigma20));
     PHI(0, 4) = s1;
 
     // NB: theta's and s's should be changed to vectors
@@ -80,10 +76,10 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
         // theta1 log acceptance ratio
         log_r = (Rcpp::sum(Rcpp::dnorm(y_1, theta1_star, 1/sqrt(s1), true)) + 
-                 R::dnorm(theta1_star, mu0(0), sqrt(tau20(0)), true))
+                 R::dnorm(theta1_star, mu0, sqrt(tau20), true))
                 -
                 (Rcpp::sum(Rcpp::dnorm(y_1, theta1, 1/sqrt(s1), true)) +
-                 R::dnorm(theta1, mu0(0), sqrt(tau20(0)), true));
+                 R::dnorm(theta1, mu0, sqrt(tau20), true));
 
         if (log(R::runif(0, 1)) < log_r) {
             theta1 = theta1_star;
@@ -91,10 +87,10 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
         
         // s1 log acceptance ratio
         log_r = (Rcpp::sum(Rcpp::dnorm(y_1, theta1, 1/sqrt(s1_star), true)) + 
-                 R::dgamma(s1_star, v0(0)/2, 2/(v0(0)*sigma20(0)), true))
+                 R::dgamma(s1_star, v0/2, 2/(v0*sigma20), true))
                 -
                 (Rcpp::sum(Rcpp::dnorm(y_1, theta1, 1/sqrt(s1), true)) +
-                 R::dgamma(s1, v0(0)/2, 2/(v0(0)*sigma20(0)), true));
+                 R::dgamma(s1, v0/2, 2/(v0(0)*sigma20), true));
 
         if (log(R::runif(0, 1)) < log_r) {
             s1 = s1_star;
@@ -102,10 +98,10 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
         
         // theta2 log acceptance ratio
         log_r = (Rcpp::sum(Rcpp::dnorm(y_2, theta2_star, 1/sqrt(s2), true)) + 
-                 R::dnorm(theta2_star, mu0(1), sqrt(tau20(1)), true))
+                 R::dnorm(theta2_star, mu0, sqrt(tau20), true))
                 -
                 (Rcpp::sum(Rcpp::dnorm(y_2, theta2, 1/sqrt(s2), true)) +
-                 R::dnorm(theta2, mu0(1), sqrt(tau20(1)), true));
+                 R::dnorm(theta2, mu0, sqrt(tau20), true));
 
         if (log(R::runif(0, 1)) < log_r) {
             theta2 = theta2_star;
@@ -113,10 +109,10 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
         // s2 log acceptance ratio
         log_r = (Rcpp::sum(Rcpp::dnorm(y_2, theta2, 1/sqrt(s2_star), true)) + 
-                 R::dgamma(s2_star, v0(0)/2, 2/(v0(0)*sigma20(0)), true))
+                 R::dgamma(s2_star, v0/2, 2/(v0*sigma20(0)), true))
                 -
                 (Rcpp::sum(Rcpp::dnorm(y_2, theta2, 1/sqrt(s2), true)) +
-                 R::dgamma(s2, v0(0)/2, 2/(v0(0)*sigma20(0)), true));
+                 R::dgamma(s2, v0/2, 2/(v0*sigma20), true));
 
         if (log(R::runif(0, 1)) < log_r) {
             s2 = s2_star;
@@ -135,8 +131,8 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
         // x log acceptance ratio
         for (int i = 0; i < x_s.length(); i++) {
-            log_r = R::dnorm(y(i), theta2, s2, true) -
-                    R::dnorm(y(i), theta1, s1, true);
+            log_r = R::dnorm(y(i), theta2, 1/sqrt(s2), true) -
+                    R::dnorm(y(i), theta1, 1/sqrt(s1), true);
             if (x_s_star(i) == 1) {
                 log_r = -1 * log_r;
             }

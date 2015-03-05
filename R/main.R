@@ -15,12 +15,12 @@ y <- scan("data/simulated.dat")
 # p ~ beta(a, b)
 
 # theta priors
-mu.0 <- c(0, 10)
-tau.20 <- c(10, 10)
+mu.0 <- 0
+tau.20 <- 10
 
 # s priors
-sigma.20 <- c(1, 20^2)
-v.0 <- c(5, 5)
+sigma.20 <- 1
+v.0 <- 5
 
 # p priors
 a <- 1
