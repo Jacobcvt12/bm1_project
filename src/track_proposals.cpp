@@ -31,7 +31,6 @@ void track_acceptance::erase_buffer()
     for (auto itr=accept_circ_buff.begin(); 
          itr!=accept_circ_buff.end(); ++itr) {
         delete itr->second;
-        accept_circ_buff.erase(itr);
     }
 }
 
@@ -42,13 +41,13 @@ void track_acceptance::modify_deltas()
         double current_delta = delta_map[itr->first];
         double delta_change;
 
-        if (rate > 0.5) {
+        if (rate > 0.3) {
             // too many acceptances, increase size of delta
-            delta_change = 1 + rate - 0.5;
+            delta_change = 1 + rate - 0.3;
             delta_map[itr->first] = current_delta * delta_change;
-        } else if (rate < 0.15) {
+        } else if (rate < 0.2) {
             // too few acceptances, decrease size of delta
-            delta_change = 1 - (0.15 - rate);
+            delta_change = 1 - (0.2 - rate);
             delta_map[itr->first] = current_delta * delta_change;
         }
     }

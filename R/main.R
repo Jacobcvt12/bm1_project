@@ -11,12 +11,12 @@
 # p ~ beta(a, b)
 
 # theta priors
-mu.0 <- c(0, 10)
-tau.20 <- c(10, 10)
+mu.0 <- 0
+tau.20 <- 10
 
 # s priors
-sigma.20 <- c(1, 20^2)
-v.0 <- c(5, 5)
+sigma.20 <- 1
+v.0 <- 5
 
 # p priors
 a <- 1
@@ -26,11 +26,12 @@ b <- 1
 #sourceCpp("src/sampler.cpp")
 
 # number of iterations
-S <- 10
+S <- 1e5
+B <- 1e4
 
 # explore joint posterior
 set.seed(42)
 y <- 0.3*rnorm(100)+0.7*rnorm(100, 2, 3)
-#PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b, S)
+PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b, S, B)
 
 # MCMC diagnostics

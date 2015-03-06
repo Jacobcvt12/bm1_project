@@ -6,17 +6,17 @@
 using namespace Rcpp;
 
 // sampler
-Rcpp::NumericMatrix sampler(Rcpp::NumericVector y, Rcpp::NumericVector mu0, Rcpp::NumericVector tau20, Rcpp::NumericVector sigma20, Rcpp::NumericVector v0, double a, double b, int S = 1000, int B = 1000);
+Rcpp::NumericMatrix sampler(Rcpp::NumericVector y, double mu0, double tau20, double sigma20, double v0, double a, double b, int S = 1000, int B = 1000);
 RcppExport SEXP bm_sampler(SEXP ySEXP, SEXP mu0SEXP, SEXP tau20SEXP, SEXP sigma20SEXP, SEXP v0SEXP, SEXP aSEXP, SEXP bSEXP, SEXP SSEXP, SEXP BSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< Rcpp::NumericVector >::type y(ySEXP );
-        Rcpp::traits::input_parameter< Rcpp::NumericVector >::type mu0(mu0SEXP );
-        Rcpp::traits::input_parameter< Rcpp::NumericVector >::type tau20(tau20SEXP );
-        Rcpp::traits::input_parameter< Rcpp::NumericVector >::type sigma20(sigma20SEXP );
-        Rcpp::traits::input_parameter< Rcpp::NumericVector >::type v0(v0SEXP );
+        Rcpp::traits::input_parameter< double >::type mu0(mu0SEXP );
+        Rcpp::traits::input_parameter< double >::type tau20(tau20SEXP );
+        Rcpp::traits::input_parameter< double >::type sigma20(sigma20SEXP );
+        Rcpp::traits::input_parameter< double >::type v0(v0SEXP );
         Rcpp::traits::input_parameter< double >::type a(aSEXP );
         Rcpp::traits::input_parameter< double >::type b(bSEXP );
         Rcpp::traits::input_parameter< int >::type S(SSEXP );
