@@ -4,6 +4,25 @@
 
 # read in data
 #y <- scan("data/simulated.dat")
+simulateZ <- function(N, p){
+    P <- rdirichlet(N, p)
+    cumP <- t(apply(P, 1, cumsum))
+    u <- runif(N)
+    zz <- rep(NA, N)
+    zz[u < cumP[, 1]] <- 1
+    k <- 2
+    while(k <= ncol(P)){
+        zz[u < cumP[, k] & u >= cumP[, k-1]] <- k
+        k <- k+1
+    }
+    zz
+}
+library(gtools)
+p <- c(0.3, 0.7)
+theta <- c(0, 2)
+sigma <- c(1, 3)
+z <- simulateZ(100, p)
+y <- rnorm(100, theta[z], sigma[z])
 
 # priors
 # thetas ~ N(mu, tau^2)
@@ -12,7 +31,7 @@
 
 # theta priors
 mu.0 <- 0
-tau.20 <- 10
+tau.20 <- 15
 
 # s priors
 sigma.20 <- 1
@@ -31,7 +50,7 @@ B <- 1e4
 
 # explore joint posterior
 set.seed(42)
-y <- 0.3*rnorm(100)+0.7*rnorm(100, 2, 3)
-#PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b, S, B)
+#PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b, S, B)[(B+1):(B+S), ]
+#plot(mcmc(PHI[, 1:5]))
 
 # MCMC diagnostics

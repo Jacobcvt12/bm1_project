@@ -27,15 +27,17 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
     double theta1 = 0;
     PHI(0, 1) = theta1;
 
-    double s1 = R::rgamma(v0/2, 2/(v0*sigma20));
+    //double s1 = R::rgamma(v0/2, 2/(v0*sigma20));
+    double s1 = 1;
     PHI(0, 2) = s1;
 
     //double theta2 = R::rnorm(mu0, sqrt(tau20));
     double theta2 = 2;
     PHI(0, 3) = theta2;
 
-    double s2 = R::rgamma(v0/2, 2/(v0*sigma20));
-    PHI(0, 4) = s1;
+    //double s2 = R::rgamma(v0/2, 2/(v0*sigma20));
+    double s2 = 1/9;
+    PHI(0, 4) = s2;
 
     // NB: theta's and s's should be changed to vectors
     // instead of individual variables
@@ -53,6 +55,9 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
     delta.track_parameter("s1", 0.2);
     delta.track_parameter("theta2", 1);
     delta.track_parameter("s2", 0.2);
+    for (int i = 0; i < x_s.length(); i++) {
+        delta.track_parameter("x" + std::to_string (i), 0.3);
+    }
 
     // begin metropolis routine
     for (int s = 1; s < S + B; ++s) {
@@ -82,7 +87,12 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
         Rcpp::NumericVector x_s_star(x_s.length());
 
         for (int i = 0; i < x_s.length(); i++) {
-            x_s_star(i) = int (x_s(i) + 1) % 2;
+            if (R::runif(0, 1) < delta["x" + std::to_string (i)]) {
+                x_s_star(i) = int (x_s(i) + 1) % 2;
+            } else {
+                x_s_star(i) = x_s(i);
+                delta.accept_reject("x" + std::to_string(i), 0);
+            }
         }
 
         // accept or reject candidate
@@ -145,36 +155,41 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
         }
 
         // p log acceptance ratio
-        //log_r = (Rcpp::sum(Rcpp::dbinom(x_s, 1, p_star, true)) +
-                 //R::dbeta(p_star, a, b, true))
-                //-
-                //(Rcpp::sum(Rcpp::dbinom(x_s, 1, p, true)) +
-                 //R::dbeta(p, a, b, true));
+        log_r = (Rcpp::sum(Rcpp::dbinom(x_s, 1, p_star, true)) +
+                 R::dbeta(p_star, a, b, true))
+                -
+                (Rcpp::sum(Rcpp::dbinom(x_s, 1, p, true)) +
+                 R::dbeta(p, a, b, true));
 
-        //if (log(R::runif(0, 1)) < log_r) {
-            //p = p_star;
-            //delta.accept_reject("p", 1);
-        //} else {
-            //delta.accept_reject("p", 0);
-        //}
+        if (log(R::runif(0, 1)) < log_r) {
+            p = p_star;
+            delta.accept_reject("p", 1);
+        } else {
+            delta.accept_reject("p", 0);
+        }
 
         // x log acceptance ratio
         for (int i = 0; i < x_s.length(); i++) {
-            if (int (x_s(i)) == 0) {
-                log_r = R::dnorm(y(i), theta1, 1/sqrt(s1), true) +
-                        R::dbinom(1, 1, 0.3, true) -
-                        R::dnorm(y(i), theta2, 1/sqrt(s2), true) -
-                        R::dbinom(0, 1, 0.3, true);
-            } else {
-                log_r = R::dnorm(y(i), theta2, 1/sqrt(s2), true) +
-                        R::dbinom(0, 1, 0.3, true) -
-                        R::dnorm(y(i), theta1, 1/sqrt(s1), true) -
-                        R::dbinom(1, 1, 0.3, true);
-            } 
+            if (x_s(i) != x_s_star(i)) {
+                if (int (x_s(i)) == 0) {
+                    log_r = R::dnorm(y(i), theta1, 1/sqrt(s1), true) +
+                            R::dbinom(1, 1, 0.3, true) -
+                            R::dnorm(y(i), theta2, 1/sqrt(s2), true) -
+                            R::dbinom(0, 1, 0.3, true);
+                } else {
+                    log_r = R::dnorm(y(i), theta2, 1/sqrt(s2), true) +
+                            R::dbinom(0, 1, 0.3, true) -
+                            R::dnorm(y(i), theta1, 1/sqrt(s1), true) -
+                            R::dbinom(1, 1, 0.3, true);
+                } 
 
-            if (log(R::runif(0, 1)) < log_r) {
-                x_s(i) = x_s_star(i);
-            }
+                if (log(R::runif(0, 1)) < log_r) {
+                    x_s(i) = x_s_star(i);
+                    delta.accept_reject("x" + std::to_string(i), 1);
+                } else {
+                    delta.accept_reject("x" + std::to_string(i), 0);
+                }
+            } 
         }
 
         // update PHI
