@@ -19,16 +19,19 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
     Rcpp::RNGScope scope;
 
     // simulate first value from prior distribution
-    double p = R::rbeta(a, b);
+    //double p = R::rbeta(a, b);
+    double p = 0.3;
     PHI(0, 0) = p;
 
-    double theta1= R::rnorm(mu0, sqrt(tau20));
+    //double theta1= R::rnorm(mu0, sqrt(tau20));
+    double theta1 = 0;
     PHI(0, 1) = theta1;
 
     double s1 = R::rgamma(v0/2, 2/(v0*sigma20));
     PHI(0, 2) = s1;
 
-    double theta2 = R::rnorm(mu0, sqrt(tau20));
+    //double theta2 = R::rnorm(mu0, sqrt(tau20));
+    double theta2 = 2;
     PHI(0, 3) = theta2;
 
     double s2 = R::rgamma(v0/2, 2/(v0*sigma20));
@@ -38,7 +41,7 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
     // instead of individual variables
 
     // intial x's~binom(0.5)
-    Rcpp::NumericVector x_s = Rcpp::rbinom(y.length(), 1, 0.5);
+    Rcpp::NumericVector x_s = Rcpp::rbinom(y.length(), 1, 0.3);
     for (int i = 5; i < 5 + y.length(); ++i) {
         PHI(0, i) = x_s(i-5);
     }
@@ -142,26 +145,32 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
         }
 
         // p log acceptance ratio
-        log_r = (Rcpp::sum(Rcpp::dbinom(x_s, 1, p_star, true)) +
-                 R::dbeta(p_star, a, b, true))
-                -
-                (Rcpp::sum(Rcpp::dbinom(x_s, 1, p, true)) +
-                 R::dbeta(p, a, b, true));
+        //log_r = (Rcpp::sum(Rcpp::dbinom(x_s, 1, p_star, true)) +
+                 //R::dbeta(p_star, a, b, true))
+                //-
+                //(Rcpp::sum(Rcpp::dbinom(x_s, 1, p, true)) +
+                 //R::dbeta(p, a, b, true));
 
-        if (log(R::runif(0, 1)) < log_r) {
-            p = p_star;
-            delta.accept_reject("p", 1);
-        } else {
-            delta.accept_reject("p", 0);
-        }
+        //if (log(R::runif(0, 1)) < log_r) {
+            //p = p_star;
+            //delta.accept_reject("p", 1);
+        //} else {
+            //delta.accept_reject("p", 0);
+        //}
 
         // x log acceptance ratio
         for (int i = 0; i < x_s.length(); i++) {
-            log_r = R::dnorm(y(i), theta2, 1/sqrt(s2), true) -
-                    R::dnorm(y(i), theta1, 1/sqrt(s1), true);
-            if (x_s_star(i) == 1) {
-                log_r = -1 * log_r;
-            }
+            if (int (x_s(i)) == 0) {
+                log_r = R::dnorm(y(i), theta1, 1/sqrt(s1), true) +
+                        R::dbinom(1, 1, 0.3, true) -
+                        R::dnorm(y(i), theta2, 1/sqrt(s2), true) -
+                        R::dbinom(0, 1, 0.3, true);
+            } else {
+                log_r = R::dnorm(y(i), theta2, 1/sqrt(s2), true) +
+                        R::dbinom(0, 1, 0.3, true) -
+                        R::dnorm(y(i), theta1, 1/sqrt(s1), true) -
+                        R::dbinom(1, 1, 0.3, true);
+            } 
 
             if (log(R::runif(0, 1)) < log_r) {
                 x_s(i) = x_s_star(i);
