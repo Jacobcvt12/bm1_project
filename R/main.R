@@ -6,7 +6,7 @@
 library(Rcpp)
 
 # simulated data
-y <- 0.3*rnorm(1000, 0, 1) + 0.7*rnorm(1000, 3, 2)
+y <- 0.3*rnorm(100, 0, 1) + 0.7*rnorm(100, 3, 2)
 
 # priors
 # thetas ~ N(mu, tau^2)
@@ -23,7 +23,7 @@ v.0 <- 5
 
 # p priors
 a <- 1
-b <- 1
+b <- 3
 
 # load C++ MCMC sampler
 sourceCpp("src/sampler.cpp")

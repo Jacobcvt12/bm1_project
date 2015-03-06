@@ -45,7 +45,7 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
     // initialize value for delta
     std::map<std::string, float> delta;
-    delta.insert(std::make_pair("p", 0.05));
+    delta.insert(std::make_pair("p", 0.1));
     delta.insert(std::make_pair("theta1", 1));
     delta.insert(std::make_pair("s1", 0.2));
     delta.insert(std::make_pair("theta2", 1));
