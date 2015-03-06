@@ -31,14 +31,14 @@ y <- rnorm(100, theta[z], sigma[z])
 
 # theta priors
 mu.0 <- 0
-tau.20 <- 15
+tau.20 <- 5
 
 # s priors
 sigma.20 <- 1
 v.0 <- 5
 
 # p priors
-a <- 1
+a <- 2
 b <- 1
 
 # load C++ MCMC sampler
@@ -50,6 +50,7 @@ B <- 1e4
 
 # explore joint posterior
 set.seed(42)
+#library(coda)
 #PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b, S, B)[(B+1):(B+S), ]
 #plot(mcmc(PHI[, 1:5]))
 
