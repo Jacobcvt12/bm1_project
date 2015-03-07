@@ -18,6 +18,11 @@ The prior distributions of the parameters used in the additive normal components
 	The prior distributions for the standard deviations $s$ of the normal components were back calculated after setting the precision values ($\frac{1}{s^2}$)  a gamma distribution with shape and rate parameters $v/2$, $\frac{v\sigma_0^2}{2}$ respectively. The prior standard deviation for the first and second component  was $1$ and $20$ respectively, with the degrees of freedom hyperparameter $v$ set $5$ for both components. 
 
 \section*{RJ MCMC specifics}
+The Reversible-Jump Markov Chain Monte Carlo sampling algorithm was called as a function in R with the arguments for the data and prior distributions specified as mentioned above. The sampler was run for $10^5$ iterations and the resulting chain was visually inspected for convergence to stationarity.
+
+%add something about trace plot
+
+After producing theses trace plots the initial $1000$ iterations of the sampler's output were eliminated as burn in.
 
 \section*{Posterior summary and diagnostics}
 
