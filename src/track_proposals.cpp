@@ -28,10 +28,11 @@ double track_acceptance::accept_rate(std::string param)
 
 void track_acceptance::erase_buffer()
 {
-    for (auto itr=accept_circ_buff.begin(); 
-         itr!=accept_circ_buff.end(); ++itr) {
-        delete itr->second;
+    for (auto &itr : accept_circ_buff) {
+        delete itr.second;
     }
+
+    accept_circ_buff.clear();
 }
 
 void track_acceptance::modify_deltas()

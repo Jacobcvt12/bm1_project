@@ -61,12 +61,7 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
 
     // begin metropolis routine
     for (int s = 1; s < S + B; ++s) {
-        if (s == B) {
-            // burn in period done
-            // following line causes segfault
-            // work this out!
-            // delta.erase_buffer();
-        } else if (s < B) {
+        if (s < B) {
             // still in burnin period
             if (s % 100 == 0) {
                 delta.modify_deltas();
@@ -203,6 +198,8 @@ Rcpp::NumericMatrix sampler(Rcpp::NumericVector y,
             PHI(s, i) = x_s(i-5);
         }
     }
+
+    delta.erase_buffer();
 
     return PHI;
 }
