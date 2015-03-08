@@ -14,10 +14,4 @@ chains = foreach(k=1:4,.combine=cbind) %dopar%
          #going to assume that you will run 4 chains
          {set.seed(1)
           chain1=rnorm(100)
-          set.seed(2)
-          chain2=rnorm(100)
-          set.seed(3)
-          chain3=rnorm(100)
-          set.seed(4)
-          chain4=rnorm(100)
-         }  
+          }  
