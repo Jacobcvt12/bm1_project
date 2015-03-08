@@ -8,10 +8,10 @@ registerDoParallel(cl)
 #number of chains to run in parallel
 num_chains=4
 
-chains = foreach(k=1:4,.combine=cbind) %dopar%
+chains = foreach(k=1:num_chains,.combine=cbind) %dopar%
          #the argument .combine=cbind will combine the results from each, 
          #the first set of columns will be from chain 1 and so on 
          #going to assume that you will run 4 chains
          {set.seed(1)
-          chain1=rnorm(100)
+          chain=rnorm(100)
           }  
