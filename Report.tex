@@ -10,21 +10,24 @@
 \begin{document}
 
 \section*{Data Simulation}
-Simulated data was generated using a two component additive mixture of normal distributions.  Each normal distribution in the mixture was given an equal probability of contributing to the observable variable. The component normal distributions had mean values of $0$ and $10$, with standard deviations of $1$ and $20$ respectively.
+Simulated data was generated using a two component additive mixture of normal distributions.  A vector of one hundred independent and identically distributed binary values( e.g $0$ or $1$) was generated from a binomial distribution with a one-third probability of assigning a particular replicate to the first of two normal distributions. The first component component normal distribution had parametric mean and precision values of $0$ and $1$ respectively. The second component normal distribution had a parametric mean and precision of $3$ and $\frac{1}{9}$ respectively.
+These different normal replicates were then concatenated and used as data in the RJ MCMC analysis.
 
 \section*{Prior Distributions}
 The prior probability of each normal distribution’s contribution to the observable variable was uniformly distributed (e.g. taken from a beta distribution with shape and rate parameters equal to one). This resulted in a $p$ value for the probability of the first normal component, with a complementary $1-p$ probability of the second normal component.
-The prior distributions of the parameters used in the additive normal components ($\theta_1$, $\theta_2$ , $s_1$, $s_2$ ) were taken from standard conjugate distributions. The $\theta$ parameters were generated from a normal distribution with a population mean hyperparameter $\mu_0$ of $0$ for both the first and second normal components. The variance hyperparameter $\tau_0^2$ for both normal component means was set to $10$ for both components.
+The prior distributions of the parameters used in the additive normal components ($\theta_1$, $\theta_2$ , $s_1$, $s_2$ ) were taken from standard conjugate distributions. The $\theta$ parameters were generated from a normal distribution with a population mean hyperparameter $\mu_0$ of $0$ and $10$ for the first and second normal components respectively. The variance hyperparameter $\tau_0^2$ for both normal component means was set to $10$ for both components.
 	The prior distributions for the standard deviations $s$ of the normal components were back calculated after setting the precision values ($\frac{1}{s^2}$)  a gamma distribution with shape and rate parameters $v/2$, $\frac{v\sigma_0^2}{2}$ respectively. The prior standard deviation for the first and second component  was $1$ and $20$ respectively, with the degrees of freedom hyperparameter $v$ set $5$ for both components. 
 
+
 \section*{RJ MCMC specifics}
-The algorithm for the RJ MCMC sampler was sourced as an R function relying on compiled C$^{++}$ code  to perform all computations. This was accomplished through the use of the R package rcpp, and the C$^{++}$11 standard and Boost. 
 
-The Reversible-Jump Markov Chain Monte Carlo sampling algorithm was called as a function in R with the arguments for the data and prior distributions specified as mentioned above. The sampler was run for $10^5$ iterations and the resulting chain was visually inspected for convergence to stationarity.
-
+The algorithm for the RJ MCMC sampler was sourced as an R function relying on compiled C$^{++}$ code  to perform all computations. This was accomplished through the use of the R package rcpp, and the C$^{++}$11 standard and Boost.
+The Reversible-Jump Markov Chain Monte Carlo sampling algorithm was called as a function in R with the arguments for the data and prior distributions specified as mentioned above. The sampler was run for $10^2$ iterations and the resulting chain was visually inspected for convergence to stationarity. 
+At each iteration one value of one of the previous states of the parameters $\theta_1, \ \theta_2, \ s_1, \ s_2, \ p, \ k, \ x_1 \ldots x_n $ were updated by resampling from a normal proposal distribution. However, in the condition that the current value of $k = 1$ (e.g. estimation of the single normal distribution model) the values of $\theta_2, \ s_2$ and the $x_1 \ldots x_n$ were set to 0. 
 %add something about trace plot
 
-After producing theses trace plots the initial $1000$ iterations of the sampler's output were eliminated as burn in.
+There was one chain of MCMC output resulting from the sampler described above. This output was analyzed as a matrix with $106$ columns representing the iterated posterior parameter estimates, and a number of rows  equal to the number of iterations the sampler was run with burn in removed.  
+
 
 \section*{Posterior summary and diagnostics}
 
