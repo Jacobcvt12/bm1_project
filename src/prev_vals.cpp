@@ -44,27 +44,39 @@ void params::priors(double prior1,
     b=prior6;
 }
 
-void params::update_theta() {
-    Rcpp::NumericVector theta_curr = theta_map[curr_dim];
-    Rcpp::NumericVector s_curr = s_map[curr_dim];
-    Rcpp::NumericVector x_s_curr = x_s_map[curr_dim];
-    double p_curr = p_map[curr_dim];
+void params::update_theta(int update_dim) {
+    Rcpp::NumericVector theta_curr = theta_map[update_dim];
+    Rcpp::NumericVector s_curr = s_map[update_dim];
+    Rcpp::NumericVector x_s_curr = x_s_map[update_dim];
+    double p_curr = p_map[update_dim];
 
     double log_r;
 
     // loop over dimensions to update each one
-    for (int i = 0; i < curr_dim; i++) {
+    for (int i = 0; i < update_dim; i++) {
         double theta = theta_curr(i);
         double s = s_curr(i);
-        Rcpp::NumericVector x_s = x_s_map[curr_dim];
-        key = "theta" + std::to_string(curr_dim) + std::to_string(i);
+        Rcpp::NumericVector x_s = x_s_map[update_dim];
+        key = "theta" + std::to_string(update_dim) + std::to_string(i);
 
         // propose theta*
-        // need to include delta somehow
         double theta_star = R::rnorm(theta, delta[key]);
 
         // subset y by component
         Rcpp::NumericVector y_sub = y[x_s == i];
+
+        //Rcpp::Rcout << "likelihood of theta* " <<
+            //Rcpp::sum(Rcpp::dnorm(y_sub, theta_star, 1/sqrt(s), true)) <<
+            //std::endl;
+        //Rcpp::Rcout << "likelihood of theta " <<
+            //Rcpp::sum(Rcpp::dnorm(y_sub, theta, 1/sqrt(s), true)) <<
+            //std::endl;
+        //Rcpp::Rcout << "likelihood of theta* given priors " <<
+            //R::dnorm(theta_star, mu0, sqrt(tau20), true) <<
+            //std::endl;
+        //Rcpp::Rcout << "likelihood of theta given priors " <<
+            //R::dnorm(theta, mu0, sqrt(tau20), true) <<
+            //std::endl;
 
         // check log r
         log_r = (Rcpp::sum(Rcpp::dnorm(y_sub, theta_star, 1/sqrt(s), true)) + 
@@ -81,24 +93,24 @@ void params::update_theta() {
         }
     }
     
-    theta_map[curr_dim] = theta_curr;
+    theta_map[update_dim] = theta_curr;
 }
 
-void params::update_s() {
-    Rcpp::NumericVector theta_curr = theta_map[curr_dim];
-    Rcpp::NumericVector s_curr = s_map[curr_dim];
-    Rcpp::NumericVector x_s_curr = x_s_map[curr_dim];
-    double p_curr = p_map[curr_dim];
+void params::update_s(int update_dim) {
+    Rcpp::NumericVector theta_curr = theta_map[update_dim];
+    Rcpp::NumericVector s_curr = s_map[update_dim];
+    Rcpp::NumericVector x_s_curr = x_s_map[update_dim];
+    double p_curr = p_map[update_dim];
 
     double log_r;
     double theta, s;
 
     // loop over dimensions to update each one
-    for (int i = 0; i < curr_dim; i++) {
+    for (int i = 0; i < update_dim; i++) {
         double theta = theta_curr(i);
         double s = s_curr(i);
-        Rcpp::NumericVector x_s = x_s_map[curr_dim];
-        key = "s" + std::to_string(curr_dim) + std::to_string(i);
+        Rcpp::NumericVector x_s = x_s_map[update_dim];
+        key = "s" + std::to_string(update_dim) + std::to_string(i);
 
         // propose theta*
         // need to include delta somehow
@@ -122,20 +134,20 @@ void params::update_s() {
         }
     }
     
-    s_map[curr_dim] = s_curr;
+    s_map[update_dim] = s_curr;
 }
 
-void params::update_x_s() {
-    Rcpp::NumericVector theta_curr = theta_map[curr_dim];
-    Rcpp::NumericVector s_curr = s_map[curr_dim];
-    Rcpp::NumericVector x_s_curr = x_s_map[curr_dim];
-    double p_curr = p_map[curr_dim];
+void params::update_x_s(int update_dim) {
+    Rcpp::NumericVector theta_curr = theta_map[update_dim];
+    Rcpp::NumericVector s_curr = s_map[update_dim];
+    Rcpp::NumericVector x_s_curr = x_s_map[update_dim];
+    double p_curr = p_map[update_dim];
 
     double log_r;
     double theta, s;
 
     // this is a manual not-so-nice update
-    if (curr_dim ==2) {
+    if (update_dim ==2) {
         // propose new x_s
         Rcpp::NumericVector x_s_star(x_s_curr.length());
 
@@ -176,21 +188,21 @@ void params::update_x_s() {
             } 
         }
 
-        x_s_map[curr_dim] = x_s_curr;
+        x_s_map[update_dim] = x_s_curr;
     }
 }
 
-void params::update_p() {
-    Rcpp::NumericVector x_s_curr = x_s_map[curr_dim];
-    double p_curr = p_map[curr_dim];
+void params::update_p(int update_dim) {
+    Rcpp::NumericVector x_s_curr = x_s_map[update_dim];
+    double p_curr = p_map[update_dim];
 
     double log_r;
 
     // less sophisticated if then
-    if (curr_dim == 2) {
+    if (update_dim == 2) {
         // propose p*
         double p_star = R::rnorm(p_curr, delta["p"]);
-
+        
         log_r = (Rcpp::sum(Rcpp::dbinom(x_s_curr, 1, p_star, true)) +
                  R::dbeta(p_star, a, b, true))
                 -
@@ -204,13 +216,21 @@ void params::update_p() {
             delta.accept_reject("p", 0);
         }
     }
+
+    p_map[update_dim] = p_curr;
 }
 
 void params::update_k()
 {
     // with prob 0.5 propose new k
     if (R::runif(0, 1) < 0.5) {
-        int new_dim = (curr_dim + 1) % 2;
+        int new_dim;
+        if (curr_dim == 1) {
+            new_dim = 2;
+        } else {
+            new_dim = 1;
+        }
+
         double likelihood1 = 0;
         double likelihood2 = 0;
 
@@ -221,21 +241,28 @@ void params::update_k()
         Rcpp::NumericVector s1 = s_map[1];
 
         Rcpp::NumericVector x_s2 = x_s_map[2];
-        Rcpp::NumericVector x_s1 = x_s_map[1];
         
         double p = p_map[2];
 
         for (int i = 0; i < y.length(); i++) {
-            likelihood1 += R::dnorm(y(i), theta1(1), 
-                                    1/sqrt(s1(1)), true);
+            likelihood1 += R::dnorm(y(i), theta1(0), 
+                                    1/sqrt(s1(0)), true);
             if (x_s2(i) == 0) {
                 likelihood2 += R::dnorm(y(i), theta2(1), 
-                                        1/sqrt(s1(1)), true);
+                                        1/sqrt(s2(1)), true);
             } else {
-                likelihood2 += R::dnorm(y(i), theta2(1), 
-                                        1/sqrt(s1(1)), true);
+                likelihood2 += R::dnorm(y(i), theta2(0), 
+                                        1/sqrt(s2(0)), true);
             }
         }
+
+        // downweight likelihood of 1 dimension
+        likelihood1 -= 160;
+
+        //Rcpp::Rcout << "likelihood of 1 component " << likelihood1 <<
+            //std::endl;
+        //Rcpp::Rcout << "likelihood of 2 component " << likelihood2 <<
+            //std::endl;
         
         double log_r;
 
@@ -256,19 +283,19 @@ Rcpp::NumericVector params::iteration(bool update_delta) {
     Rcpp::NumericVector s(5+y.length()+1);
 
     // updates
-    update_theta();
-    update_s();
-    update_x_s();
-    update_p();
-    update_k();
+    for (int i = 1; i <= 2; i++) {
+        update_theta(i);
+        update_s(i);
+        update_x_s(i);
+        update_p(i);
+        update_k();
+    }
 
     s(0) = theta_map[curr_dim](0);
     s(1) = theta_map[curr_dim](1);
     s(2) = s_map[curr_dim](0);
     s(3) = s_map[curr_dim](1);
     s(4) = p_map[curr_dim];
-
-    Rcpp::Rcout << s(0) << std::endl;
 
     for (int i = 5; i < y.length(); i++) {
         s(i) = x_s_map[curr_dim](i-5);

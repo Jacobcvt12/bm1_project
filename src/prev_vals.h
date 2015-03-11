@@ -44,10 +44,10 @@ class params {
                     double prior6);
 
         // change these to not return anything
-        void update_theta();
-        void update_s();
-        void update_x_s();
-        void update_p();
+        void update_theta(int update_dim);
+        void update_s(int update_dim);
+        void update_x_s(int update_dim);
+        void update_p(int update_dim);
         void update_k();
         
         Rcpp::NumericVector iteration(bool update_delta=false);

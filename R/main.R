@@ -46,7 +46,7 @@ b <- 1
 
 # number of iterations
 S <- 1e5
-B <- 1e4
+B <- 1e3
 
 # explore joint posterior
 set.seed(42)
