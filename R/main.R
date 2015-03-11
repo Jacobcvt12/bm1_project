@@ -51,8 +51,9 @@ B <- 1e4
 # explore joint posterior
 set.seed(42)
 #library(coda)
+#PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b, S, B)
 #PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b, S, B)[(B+1):(B+S), ]
 #plot(mcmc(PHI[, 1:5]))
 
 # drop burnins
-PHI <- PHI[1001:nrow(PHI), ]
+#PHI <- PHI[1001:nrow(PHI), ]
