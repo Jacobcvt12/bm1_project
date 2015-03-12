@@ -10,26 +10,28 @@
 \begin{document}
 
 \section*{Data Simulation}
-Simulated data was generated using a two component additive mixture of normal distributions.  A vector of one hundred independent and identically distributed binary values( e.g $0$ or $1$) was generated from a binomial distribution with a one-third probability of assigning a particular replicate to the first of two normal distributions. The first component component normal distribution had parametric mean and precision values of $0$ and $1$ respectively. The second component normal distribution had a parametric mean and precision of $3$ and $\frac{1}{9}$ respectively.
-These different normal replicates were then concatenated and used as data in the RJ MCMC analysis.
+Simulated data was generated using a two component additive mixture of normal distributions.  A vector of one hundred independent and identically distributed binary values( e.g $0$ or $1$) was generated from a binomial distribution with a one-third probability of assigning a particular replicate to the first of two normal distributions. The first component component normal distribution had parametric mean and precision values of $0$ and $1$ respectively. The second component normal distribution had a parametric mean and precision of $2$ and $\frac{1}{9}$ respectively. These different normal replicates were then concatenated and used as data in the RJ MCMC analysis.
 
 \section*{Prior Distributions}
 The prior probability of each normal distribution’s contribution to the observable variable was uniformly distributed (e.g. taken from a beta distribution with shape and rate parameters equal to one). This resulted in a $p$ value for the probability of the first normal component, with a complementary $1-p$ probability of the second normal component.
 The prior distributions of the parameters used in the additive normal components ($\theta_1$, $\theta_2$ , $s_1$, $s_2$ ) were taken from standard conjugate distributions. The $\theta$ parameters were generated from a normal distribution with a population mean hyperparameter $\mu_0$ of $0$ and $10$ for the first and second normal components respectively. The variance hyperparameter $\tau_0^2$ for both normal component means was set to $10$ for both components.
 	The prior distributions for the standard deviations $s$ of the normal components were back calculated after setting the precision values ($\frac{1}{s^2}$)  a gamma distribution with shape and rate parameters $v/2$, $\frac{v\sigma_0^2}{2}$ respectively. The prior standard deviation for the first and second component  was $1$ and $20$ respectively, with the degrees of freedom hyperparameter $v$ set $5$ for both components. 
 
-
 \section*{RJ MCMC specifics}
 
-The algorithm for the RJ MCMC sampler was sourced as an R function relying on compiled C$^{++}$ code  to perform all computations. This was accomplished through the use of the R package rcpp, and the C$^{++}$11 standard and Boost.
-The Reversible-Jump Markov Chain Monte Carlo sampling algorithm was called as a function in R with the arguments for the data and prior distributions specified as mentioned above. The sampler was run for $10^2$ iterations and the resulting chain was visually inspected for convergence to stationarity. 
-At each iteration one value of one of the previous states of the parameters $\theta_1, \ \theta_2, \ s_1, \ s_2, \ p, \ k, \ x_1 \ldots x_n $ were updated by resampling from a normal proposal distribution. However, in the condition that the current value of $k = 1$ (e.g. estimation of the single normal distribution model) the values of $\theta_2, \ s_2$ and the $x_1 \ldots x_n$ were set to 0. 
+The algorithm for a simplified RJ MCMC sampler was sourced as an R function relying on compiled C$^{++}$ code  to perform all computations. This was accomplished through the use of the R package rcpp, and the C$^{++}$11 standard and Boost. Each iteration of the sampler selected from a single normal model ($k=1$) or a mixture of two normal distributions ($k=2$) and therefore approximated the trans-dimensional estimation capabilities of a full RJ MCMC algorithm, but limited the number of extra parameters that could be proposed.
+The sampling algorithm was called as a function in R with the arguments for the data and prior distributions specified as mentioned above. The sampler was run for $10^5$ iterations and the resulting chain was visually inspected for convergence to stationarity.  For the first $1000$ iterations an adaptive updating scheme was used where the the delta variables assigning each data replicate to a particular component distribution was altered if in the previous $100$ iterations the proposal state rejection rate was not  between $15 - 50$ percent. The first $1000$ iterations were then removed from as burn in. 
+At each iteration one value of one of the previous states of the parameters $\theta_1, \ \theta_2, \ s_1, \ s_2, \ p, \ k, \ x_1 \ldots x_n $ were updated by stochastically generating proposal states and accepting these states with a probability proportional to the likelihood ratio of the the proposal state compared with the previous state. The first five parameters listed above were updated by by resampling from a normal proposal distribution. The categorical $k$ parameter was updated at each step using a uniform probability ($0.5$) of proposing either the single normal model or mixture of normals model at each iteration. In the condition that the current value of $k = 1$ (e.g. estimation of the single normal distribution model) the values of $\theta_2, \ s_2$ and the $x_1 \ldots x_n$ were set to 0. 
+
 %add something about trace plot
 
-There was one chain of MCMC output resulting from the sampler described above. This output was analyzed as a matrix with $106$ columns representing the iterated posterior parameter estimates, and a number of rows  equal to the number of iterations the sampler was run with burn in removed.  
 
 
 \section*{Posterior summary and diagnostics}
+There was one chain of MCMC output resulting from the sampler described above. This output was analyzed as a matrix with $106$ columns representing the iterated posterior parameter estimates, and a number of rows  equal to the number of iterations the sampler was run with burn in removed (e.g. $99\times10^3$). 
+The effective sample sizes for the output parameter estimates ranged from $7937.519$ (for $\theta_1$ in the single normal model) to $1605.684$ (for the precision of the lower normal distribution in the mixture model), and were generally lower for the parameters of the more complex model.
+
+
 
 \section*{comparison of model to simulation parameters}
 
