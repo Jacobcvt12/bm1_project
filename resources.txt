@@ -1,7 +1,0 @@
-http://www.maths.bris.ac.uk/~mapjg/papers/RJMCMCBka.pdf
-http://www.stats.gla.ac.uk/~agostino/mixallocR3.pdf
-http://papers.nips.cc/paper/1422-an-application-of-reversible-jump-mcmc-to-multivariate-spherical-gaussian-mixtures.pdf
-http://www.cs.cmu.edu/~epxing/Class/10801-07/lectures/RJMCMCBka.pdf
-http://www.kev-smith.com/tutorial/rjmcmc.php
-http://people.ee.duke.edu/~lcarin/rjmcmc_20090613.pdf
-http://en.wikipedia.org/wiki/Reversible-jump_Markov_chain_Monte_Carlo
