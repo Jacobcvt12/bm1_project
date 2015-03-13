@@ -1,6 +1,6 @@
 ### chain <- 1 chain of MCMC output with columns $P, $Theta1, $Theta2, $s1, $s2, $x1, $x2
 
-library(coda)
+#library(coda)
 
 #P_auto_corr<-acf(chain$P, plot=FALSE)
 #P_EffectiveSS<-effectiveSize(chain$P)

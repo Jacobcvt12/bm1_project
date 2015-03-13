@@ -2,3 +2,7 @@
 src/*.so
 src/*.o
 data/*.RData
+*.log
+*.aux
+*.tex
+*.pdf

@@ -52,7 +52,7 @@ B <- 1e3
 set.seed(42)
 #library(coda)
 #PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b, S, B)
-PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b, S, B)[(B+1):(B+S), ]
+#PHI <- sampler(y, mu.0, tau.20, sigma.20, v.0, a, b, S, B)
 #plot(mcmc(PHI[, 1:5]))
 
 # drop burnins

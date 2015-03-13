@@ -5,7 +5,9 @@ Version: 1.0
 Date: 2015-03-04
 Author: Your Name
 Maintainer: Your Name <your@email.com>
-Description: More about what it does (maybe more than one line)
+Description: Final project for Bayesian Methods 1
 License: GPL (>= 2)
 Imports: Rcpp (>= 0.11.4)
 LinkingTo: Rcpp
+Suggests: knitr
+VignetteBuilder: knitr
